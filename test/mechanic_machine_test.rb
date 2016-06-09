@@ -82,6 +82,19 @@ class StatefulEnumTest < ActiveSupport::TestCase
     end
   end
 
+  def test_after_transition_hook_with_rollback
+    bug = Bug.create
+
+    begin
+      bug.close_with_callback_which_causes_rollback!
+    rescue StandardError => e
+      raise e unless e.message == 'after callback was failed'
+    end
+
+    bug.reload
+    assert bug.unassigned?
+  end
+
   def test_if_condition
     bug = Bug.new
     assert_raises do

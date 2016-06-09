@@ -27,6 +27,14 @@ class Bug < ActiveRecord::Base
 
       transition all - [:closed] => :closed
     end
+
+    event :close_with_callback_which_causes_rollback do
+      after do
+        raise StandardError.new('after callback was failed')
+      end
+
+      transition all - [:closed] => :closed
+    end
   end
 
   class Notifier

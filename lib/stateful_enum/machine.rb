@@ -46,12 +46,13 @@ module StatefulEnum
             to, condition = transitions[send(column).to_sym]
             #TODO better error
             if to && (!condition || instance_exec(&condition))
-              #TODO transaction?
-              instance_eval(&before) if before
-              original_method = self.class.send(:_enum_methods_module).instance_method "#{prefix}#{to}#{suffix}!"
-              ret = original_method.bind(self).call
-              instance_eval(&after) if after
-              ret
+              ActiveRecord::Base.transaction do
+                instance_eval(&before) if before
+                original_method = self.class.send(:_enum_methods_module).instance_method "#{prefix}#{to}#{suffix}!"
+                ret = original_method.bind(self).call
+                instance_eval(&after) if after
+                ret
+              end
             else
               false
             end
